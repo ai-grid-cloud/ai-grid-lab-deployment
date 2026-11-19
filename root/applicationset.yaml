@@ -148,11 +148,18 @@ spec:
     {{- $_ := set .helm "parameters" (list
       (dict "name" "external.certManager.ca.mode" "value" "Existing")
       (dict "name" "managedClusters.createClusterSetBinding" "value" "true")
-      (dict "name" "image.repository" "value" "192.168.122.1:5000/enrollment-bootstrap-stub")
-      (dict "name" "image.digest" "value" "sha256:8d7f548fc657d2520c978e529c06494667ae2c8a62f1e41d7d9da6ccdc8f0651")
+      (dict "name" "image.repository" "value" "192.168.122.1:5000/rhoai/odh-praxis-ai-grid-enrollment-rhel9")
+      (dict "name" "image.tag" "value" "lab")
+      (dict "name" "image.digest" "value" "")
       (dict "name" "image.pullPolicy" "value" "IfNotPresent")
     ) }}
     {{- end }}{{ end }}
+    {{- end }}
+    {{- if eq .metadata.name "acm" }}
+    {{- /* SNO lab: skip MultiClusterObservability (cannot schedule Ready on 1 node). */}}
+    {{- $_ := set $spec.source "repoURL" $.values.deploymentRepoURL }}
+    {{- $_ := set $spec.source "targetRevision" $.values.deploymentRevision }}
+    {{- $_ := set $spec.source "path" "apps/acm-manifests-no-mco" }}
     {{- end }}
     {{- if eq .metadata.name "odf" }}
     {{- $params := list (dict "name" "openshift.version" "value" (index .metadata.labels "openshiftVersion-major-minor")) }}
