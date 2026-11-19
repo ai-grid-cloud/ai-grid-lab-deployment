@@ -1,0 +1,104 @@
+# Your AI Grid deployment: how to reach each cluster, its repositories and the
+# install's options. Roles and locations aren't set here: you choose them in
+# the provider console when you add a site to the grid (Add to AI Grid).
+#
+# Copy this file to one of two places, then replace every REQUIRED- value:
+#
+# - .config/clusters.yaml, for the one-command install (install guide, page 9).
+#   Run make config to create it: it uncomments the secrets make install needs,
+#   each cluster's username and password, catalog.token, and the quay: and
+#   stage: sections, each with a REQUIRED- value. Git ignores .config/, the file
+#   must be readable only by you (chmod 600), and it's where your secrets go. To
+#   log in with a token instead of a password, uncomment token: and delete
+#   username: and password:. deployment: is optional and stays commented out.
+#
+# - clusters.yaml at the root, for the page-by-page guide (pages 1 to 8):
+#   cp clusters-example.yaml clusters.yaml. You commit it, so it holds no
+#   secrets: the scripts refuse a cluster's token:, username: and password:,
+#   catalog.token, deployment:, quay: and stage: in it. Leave those lines commented out.
+#
+# When .config/clusters.yaml exists, the scripts read it and ignore clusters.yaml.
+apiVersion: ai-grid.dev/v1alpha1   # required header: the scripts parse this file with kubectl
+kind: Clusters
+
+# The ACM hub: runs Argo CD, ACM and the shared services. The scripts and the
+# guide call it "hub". It runs no models: a hub is never a site (all-in-one
+# isn't supported; docs/upstream-main-limits.md L18).
+hub:
+  api: REQUIRED-hubAPIURL          # from oc whoami --show-server, e.g. https://api.hub.example.com:6443
+  # Optional, in either file: the CAs that the cluster's API certificate and its
+  # router's certificate (the OAuth server and Routes) chain to, when no public
+  # CA signed them, as on a new cluster. It replaces your system's trust for
+  # this cluster, so it must cover both; it doesn't apply to a site's MaaS
+  # gateway. make fetch-ca writes it here (NAME=hub for the hub alone). One of:
+  #   ca: |                    the PEM certificates
+  #     -----BEGIN CERTIFICATE-----
+  #     ...
+  #   ca: certs/hub-ca.pem     a PEM file, relative to this repository, absolute, or ~/...
+  #   ca: ignore               no check at all (not recommended): your password is sent unverified
+  # Left out, the scripts use .config/hub/ca.crt when it exists, else your system's trust.
+  # Private file only: a cluster-admin login. Either a username and password
+  # (the scripts get a fresh token on every run, so a rerun works the next day):
+  # username: kubeadmin
+  # password: PASSWORD
+  # or a token (from oc whoami -t; it expires in about 24 h):
+  # token: sha256~TOKEN
+
+# The clusters the hub imports into ACM. You add each one to the grid, and
+# choose its role and location, in the provider console.
+#
+# List at least one site: make install stops when sites: is empty. Only
+# make install HUB_ONLY=1 accepts "sites: []", for a hub whose sites you add
+# later.
+sites:
+  - name: REQUIRED-siteName        # its ACM name, a DNS label, e.g. site-1; fixed once imported
+    api: REQUIRED-siteAPIURL       # e.g. https://api.site-1.example.com:6443
+    # Optional: ca:, as for the hub; make fetch-ca writes it (NAME=SITE_NAME for this site alone).
+    # Private file only: a cluster-admin login, as for the hub.
+    # username: kubeadmin
+    # password: PASSWORD
+    # token: sha256~TOKEN
+  # Another site: copy the lines above, from "- name:".
+
+# The catalog repository the provider console writes models and subscriptions to.
+catalog:
+  url: REQUIRED-catalogRepoURL     # e.g. https://github.com/OWNER/ai-grid-catalog.git; page by page, leave it: REQUIRED- means no catalog yet
+  # Private file only: a fine-grained token, Contents: Read and write, on this
+  # repository only.
+  # token: github_pat_TOKEN
+
+# Private file only. Environment variables override these (install guide, page 9).
+# Optional: a token that can push to this deployment repository, for CI.
+# Without it, make install pushes with your own git login (gh or a credential helper).
+# deployment:
+#   token: github_pat_TOKEN
+# Your quay.io/rhoai robot account.
+# quay:
+#   username: rhoai+robot
+#   password: PASSWORD
+# Your registry.stage.redhat.io login: sites pull model runtimes only from there.
+# stage:
+#   username: STAGE_USERNAME
+#   password: PASSWORD
+
+# Optional: make install's settings, shown with their defaults. Uncomment a
+# line to change it. A setting left out comes from the environment variable of
+# the same name, else the default.
+#
+# Not here: the tenants' Keycloak overlay. Choose it before your first make
+# install, in root/inputs.env: keycloakOverlay=default for a test deployment
+# (the library's example organizations and test users), core (the install's
+# default) for production. Switching core to default later needs a re-import
+# of realm saas (install guide, page 9).
+options:
+  # LIBRARY: main                        # the library revision: a branch the hub follows as it moves (default main), or a tag or full SHA to pin one commit; left out, root/applicationset.yaml's libraryRevision stands
+  # KEYCLOAK: install                    # only "install" is supported
+  # ALLOW_GENERIC_LOGIN: 1               # let bootstrap use a general quay.io login from QUAY_AUTH_FILE
+  # PROVIDER_ADMIN_TOKEN_DURATION: 168h  # lifetime of .config/provider-admin-token
+  # GATE_ROOT_SECONDS: 600               # deployment-root Synced at the pushed commit
+  # GATE_MCH_SECONDS: 1800               # the MultiClusterHub Running
+  # GATE_HUB_APPS_SECONDS: 5400          # every hub Application Synced and Healthy
+  # GATE_SITE_IMPORT_SECONDS: 900        # each site's import
+  # GATE_READY_SECONDS: 600              # ready-check passes
+  # GATE_INTERVAL: 15                    # seconds between a gate's checks
+  # GATE_ERROR_LIMIT: 4                  # consecutive oc errors before a gate fails
