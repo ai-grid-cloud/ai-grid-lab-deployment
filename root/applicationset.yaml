@@ -143,7 +143,7 @@ spec:
     {{- range $sources }}
     {{- if and (hasKey . "repoURL") (eq (trimSuffix ".git" .repoURL) $lib) }}{{ $_ := set . "targetRevision" $.values.libraryRevision }}{{ end }}
     {{- end }}
-    {{- if eq .metadata.name "grid-bootstrap" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "grid-bootstrap") }}
     {{- range $spec.sources }}{{ if hasKey . "helm" }}
     {{- $_ := set .helm "parameters" (list
       (dict "name" "external.certManager.ca.mode" "value" "Existing")
@@ -155,39 +155,39 @@ spec:
     ) }}
     {{- end }}{{ end }}
     {{- end }}
-    {{- if eq .metadata.name "acm" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "acm") }}
     {{- $_ := set $spec.source "repoURL" $.values.deploymentRepoURL }}
     {{- $_ := set $spec.source "targetRevision" $.values.deploymentRevision }}
     {{- $_ := set $spec.source "path" "apps/acm-manifests-no-mco" }}
     {{- end }}
-    {{- if eq .metadata.name "odf" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "odf") }}
     {{- $params := list (dict "name" "openshift.version" "value" (index .metadata.labels "openshiftVersion-major-minor")) }}
-    {{- if eq (index .metadata.labels "ai-grid/odf-operatorgroup") "existing" }}
+    {{- if and (hasKey . "metadata") (hasKey .metadata "labels") (eq (index .metadata.labels "ai-grid/odf-operatorgroup") "existing") }}
     {{- $params = append $params (dict "name" "operatorGroup.create" "value" "false") }}
     {{- end }}
     {{- $_ := set $spec.source.helm "parameters" $params }}
     {{- end }}
-    {{- if eq .metadata.name "cert-manager" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "cert-manager") }}
     {{- if not (has $.values.hubCertManager (list "library" "platform" "site")) }}{{ fail "invalid input: hubCertManager (library, platform or site)" }}{{ end }}
     {{- if ne $.values.hubCertManager "library" }}
     {{- $_ := set $spec.source "directory" (dict "include" "{platform-cert-manager}") }}
     {{- end }}
     {{- end }}
-    {{- if eq .metadata.name "keycloak" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "keycloak") }}
     {{- if not (has $.values.keycloakOverlay (list "core" "default")) }}{{ fail "invalid input: keycloakOverlay (core or default)" }}{{ end }}
     {{- $_ := set $spec.source "path" (printf "apps/keycloak/overlays/%s" $.values.keycloakOverlay) }}
     {{- end }}
-    {{- if eq .metadata.name "console" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "console") }}
     {{- range $spec.sources }}{{ if hasKey . "helm" }}
     {{- $git := .helm.valuesObject.backend.git }}
     {{- $_ := set $git "url" $.values.catalogRepoURL }}
     {{- $_ := set $git "branch" $.values.catalogRevision }}
     {{- end }}{{ end }}
     {{- end }}
-    {{- if eq .metadata.name "limitador-redis" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "limitador-redis") }}
     {{- $_ := set $spec.source "directory" (dict "exclude" "{04-limitador-redis-secret.yaml,20-limitador-storage.yaml}") }}
     {{- end }}
-    {{- if eq .metadata.name "rhoai" }}
+    {{- if and (hasKey . "metadata") (eq .metadata.name "rhoai") }}
     {{- $_ := set $spec.source "directory" (dict "exclude" "00-managed-cluster-set-binding-grid.yaml") }}
     {{- end }}
     {{- $json := toJson $spec }}
