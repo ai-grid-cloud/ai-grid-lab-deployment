@@ -146,7 +146,7 @@ spec:
     {{- if eq .metadata.name "grid-bootstrap" }}
     {{- range $spec.sources }}{{ if hasKey . "helm" }}
     {{- $_ := set .helm "parameters" (list
-      (dict "name" "external.certManager.ca.mode" "value" "Generate")
+      (dict "name" "external.certManager.ca.mode" "value" "Existing")
       (dict "name" "managedClusters.createClusterSetBinding" "value" "true")
       (dict "name" "image.repository" "value" "192.168.122.1:5000/enrollment-bootstrap-stub")
       (dict "name" "image.digest" "value" "sha256:8d7f548fc657d2520c978e529c06494667ae2c8a62f1e41d7d9da6ccdc8f0651")
