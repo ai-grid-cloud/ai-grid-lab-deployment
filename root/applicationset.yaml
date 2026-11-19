@@ -144,10 +144,10 @@ spec:
     {{- if hasKey $spec "source" }}{{ $sources = append $sources $spec.source }}{{ end }}
     {{- if hasKey $spec "sources" }}{{ range $spec.sources }}{{ $sources = append $sources . }}{{ end }}{{ end }}
     {{- range $sources }}
-    {{- if and (hasKey . "repoURL") (eq (trimSuffix ".git" .repoURL) $lib) }}{{ $_ := set . "targetRevision" $.values.libraryRevision }}{{ end }}
+    {{- if and (kindIs "map" .) (hasKey . "repoURL") (eq (trimSuffix ".git" .repoURL) $lib) }}{{ $_ := set . "targetRevision" $.values.libraryRevision }}{{ end }}
     {{- end }}
     {{- if and (hasKey . "metadata") (eq .metadata.name "grid-bootstrap") }}
-    {{- range $spec.sources }}{{ if hasKey . "helm" }}
+    {{- range $spec.sources }}{{ if and (kindIs "map" .) (hasKey . "helm") }}
     {{- $_ := set .helm "parameters" (list
       (dict "name" "external.certManager.ca.mode" "value" "Existing")
       (dict "name" "managedClusters.createClusterSetBinding" "value" "true")
@@ -181,7 +181,7 @@ spec:
     {{- $_ := set $spec.source "path" (printf "apps/keycloak/overlays/%s" $.values.keycloakOverlay) }}
     {{- end }}
     {{- if and (hasKey . "metadata") (eq .metadata.name "console") }}
-    {{- range $spec.sources }}{{ if hasKey . "helm" }}
+    {{- range $spec.sources }}{{ if and (kindIs "map" .) (hasKey . "helm") }}
     {{- $git := .helm.valuesObject.backend.git }}
     {{- $_ := set $git "url" $.values.catalogRepoURL }}
     {{- $_ := set $git "branch" $.values.catalogRevision }}
