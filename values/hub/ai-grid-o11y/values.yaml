@@ -1,0 +1,3 @@
+# Lab SNOs use LVMS on vdb — not AWS gp3-csi.
+lokiStack:
+  storageClassName: lvms-vg1
