@@ -145,7 +145,14 @@ spec:
     {{- end }}
     {{- if eq .metadata.name "grid-bootstrap" }}
     {{- range $spec.sources }}{{ if hasKey . "helm" }}
-    {{- $_ := set .helm "parameters" (list (dict "name" "external.certManager.ca.mode" "value" "Generate") (dict "name" "managedClusters.createClusterSetBinding" "value" "true")) }}
+    {{- $_ := set .helm "parameters" (list
+      (dict "name" "external.certManager.ca.mode" "value" "Generate")
+      (dict "name" "managedClusters.createClusterSetBinding" "value" "true")
+      (dict "name" "image.repository" "value" "192.168.122.1:5000/enrollment-bootstrap-stub")
+      (dict "name" "image.tag" "value" "lab")
+      (dict "name" "image.digest" "value" "")
+      (dict "name" "image.pullPolicy" "value" "IfNotPresent")
+    ) }}
     {{- end }}{{ end }}
     {{- end }}
     {{- if eq .metadata.name "odf" }}
