@@ -35,7 +35,7 @@ metadata:
     argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:
   goTemplate: true
-  goTemplateOptions: ["missingkey=error"]
+  goTemplateOptions: ["missingkey=default"]
   syncPolicy:
     applicationsSync: sync
     # Keep deployed resources when the root or a generated Application is removed.
@@ -136,7 +136,8 @@ spec:
   # with ", ', \ or @, with "invalid input: <name>".
   templatePatch: |
     {{- $spec := .spec }}
-    {{- $lib := trimSuffix ".git" .values.libraryRepoURL }}
+    {{- if not (hasKey . "values") }}{{- $_ := set . "values" (dict) }}{{- end }}
+    {{- $lib := trimSuffix ".git" (default "" .values.libraryRepoURL) }}
     {{- $sources := list }}
     {{- if hasKey $spec "source" }}{{ $sources = append $sources $spec.source }}{{ end }}
     {{- if hasKey $spec "sources" }}{{ range $spec.sources }}{{ $sources = append $sources . }}{{ end }}{{ end }}
