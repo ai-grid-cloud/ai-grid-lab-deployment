@@ -19,8 +19,8 @@
 #   instead.
 # - cert-manager: the library's apps/cert-manager, unless hubCertManager is
 #   platform (the hub already runs the platform's cert-manager), when its
-#   Application selects nothing. metallb serves only lab clusters labelled
-#   ai-grid/metallb-pool and isn't selected.
+#   Application selects nothing. metallb is selected for this lab (no cloud LB):
+#   sites labelled ai-grid/metallb-pool get MetalLB via its ApplicationSet.
 #
 # libraryRevision is a branch, which the hub follows, or a full commit SHA, which
 # it stays at. To change it, run scripts/set-library.sh REVISION (make install
@@ -79,6 +79,8 @@ spec:
           - path: apps/argo-registration/application.yaml
           - path: apps/rhoai/application.yaml
           - path: apps/rhoai-prerequisites/application.yaml
+          # Lab SNOs have no cloud LB: MetalLB from ai-grid/metallb-pool labels.
+          - path: apps/metallb/application.yaml
           # Usage logs; ai-grid-o11y is apps/ai-grid-o11y.yaml here.
           - path: apps/ai-grid-usage-logs/application.yaml
     # 1: ODF, whose operator channel follows the hub's OpenShift minor version:
