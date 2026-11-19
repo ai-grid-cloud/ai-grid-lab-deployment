@@ -141,7 +141,7 @@ spec:
     {{- if hasKey $spec "source" }}{{ $sources = append $sources $spec.source }}{{ end }}
     {{- if hasKey $spec "sources" }}{{ range $spec.sources }}{{ $sources = append $sources . }}{{ end }}{{ end }}
     {{- range $sources }}
-    {{- if eq (trimSuffix ".git" .repoURL) $lib }}{{ $_ := set . "targetRevision" $.values.libraryRevision }}{{ end }}
+    {{- if and (hasKey . "repoURL") (eq (trimSuffix ".git" .repoURL) $lib) }}{{ $_ := set . "targetRevision" $.values.libraryRevision }}{{ end }}
     {{- end }}
     {{- if eq .metadata.name "grid-bootstrap" }}
     {{- range $spec.sources }}{{ if hasKey . "helm" }}
@@ -156,7 +156,6 @@ spec:
     {{- end }}{{ end }}
     {{- end }}
     {{- if eq .metadata.name "acm" }}
-    {{- /* SNO lab: skip MultiClusterObservability (cannot schedule Ready on 1 node). */}}
     {{- $_ := set $spec.source "repoURL" $.values.deploymentRepoURL }}
     {{- $_ := set $spec.source "targetRevision" $.values.deploymentRevision }}
     {{- $_ := set $spec.source "path" "apps/acm-manifests-no-mco" }}
